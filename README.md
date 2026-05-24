@@ -190,12 +190,13 @@ For long-running tasks / thread-safe responses:
 ```cpp
 http->on_async_request("/long-task", [](const request& req,
                                         async_response&& res) {
-  // req.to_async() captures request data safely for use in another thread
+  // req.to_async() captures request data safely for use in another thread.
 
   std::thread([req = req.to_async(), res = std::move(res)]() mutable {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     
     // you can use req safely
+    std::cout << "Accept: " << req.get_header("Accept") << '\n';
     res.send(status_code::ok, "Task completed");
   }).detach();
 });

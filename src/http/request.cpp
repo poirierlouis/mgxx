@@ -53,8 +53,7 @@ std::string_view request::body() const {
   return {m_msg->body.buf, m_msg->body.len};
 }
 
-std::unique_ptr<async_request> request::to_async() const {
-  return std::make_unique<async_request>(m_msg, m_groups, m_ip,
-                                         m_tls_cert_info);
+async_request request::to_async() const {
+  return async_request(m_msg, m_groups, m_ip, m_tls_cert_info);
 }
 }  // namespace mgxx::http

@@ -218,7 +218,7 @@ int main(int, char**) {
                                 res = std::move(res)]() mutable {
               std::this_thread::sleep_for(std::chrono::seconds(2));
 
-              if (const auto info = req->get_tls_cert_info().lock()) {
+              if (const auto info = req.get_tls_cert_info().lock()) {
                 res.send(status_code::ok,
                          std::format(
                              "--- Client certificate ---\n"
@@ -246,9 +246,11 @@ int main(int, char**) {
                 [req = req.to_async(), res = std::move(res)]() mutable {
                   std::this_thread::sleep_for(std::chrono::seconds(2));
 
-                  res.send(status_code::ok,
-                           std::format("You are {}!", req->get_remote_ip()));
-                });
+              res.send(status_code::ok,
+                       std::format("You are {}!\nYou accept: {}",
+                                   req.get_remote_ip(),
+                                   req.get_header("Accept").value_or("N/A")));
+            });
 
             thread.detach();
           })
@@ -290,16 +292,16 @@ int main(int, char**) {
           })
       .on_async_request("/async/?", [&async_counter](const request& req,
                                                      async_response&& res) {
-        std::thread thread([&async_counter, async_req = req.to_async(),
+        std::thread thread([&async_counter, req = req.to_async(),
                             res = std::move(res)]() mutable {
-          const auto param = async_req->get_param(0).value_or("5");
+          const auto param = req.get_param(0).value_or("5");
           const int sleep = to_int(param).value_or(5);
           std::this_thread::sleep_for(std::chrono::seconds(sleep));
 
           auto count = async_counter.fetch_add(1);
           res.send(status_code::ok,
                    std::format("I'm an async {} callback ({} calls).",
-                               async_req->method(), count));
+                               req.method(), count));
         });
 
         thread.detach();

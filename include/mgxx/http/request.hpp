@@ -42,7 +42,7 @@ class request {
       const std::string& name) const;
   [[nodiscard]] std::string_view body() const;
 
-  [[nodiscard]] std::unique_ptr<async_request> to_async() const;
+  [[nodiscard]] async_request to_async() const;
 };
 }  // namespace mgxx::http
 
