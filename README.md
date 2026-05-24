@@ -189,14 +189,14 @@ For long-running tasks / thread-safe responses:
 
 ```cpp
 http->on_async_request("/long-task", [](const request& req,
-                                        const std::shared_ptr<async_response>& res) {
+                                        async_response&& res) {
   // req.to_async() captures request data safely for use in another thread
 
-  std::thread([async_req = req.to_async(), res]() {
+  std::thread([req = req.to_async(), res = std::move(res)]() mutable {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     
-    // you can use async_req safely
-    res->send(status_code::ok, "Task completed");
+    // you can use req safely
+    res.send(status_code::ok, "Task completed");
   }).detach();
 });
 ```
@@ -204,8 +204,8 @@ http->on_async_request("/long-task", [](const request& req,
 You can send chunked responses asynchronously too:
 ```cpp
 http->on_async_request("/long-file", [](const request&,
-                                        const std::shared_ptr<async_response>& res) {
-  std::thread([res]() {
+                                        async_response&& res) {
+  std::thread([res = std::move(res)]() mutable {
     const auto stream = res->stream(status_code::ok /*, "gzip, chunked" */);
     while (stream->wait()) {
       if (eof) {
