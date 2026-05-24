@@ -242,9 +242,9 @@ int main(int, char**) {
       .on_async_request(
           "/async/who",
           [](const request& req, async_response&& res) {
-            std::thread thread(
-                [req = req.to_async(), res = std::move(res)]() mutable {
-                  std::this_thread::sleep_for(std::chrono::seconds(2));
+            std::thread thread([req = req.to_async(),
+                                res = std::move(res)]() mutable {
+              std::this_thread::sleep_for(std::chrono::seconds(2));
 
               res.send(status_code::ok,
                        std::format("You are {}!\nYou accept: {}",
