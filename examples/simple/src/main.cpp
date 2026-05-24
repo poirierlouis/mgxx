@@ -57,6 +57,8 @@ int main(int, char**) {
 
 #ifdef _WIN32
   const std::filesystem::path build{"../../../../"};
+#elif WSL
+  const std::filesystem::path build{"../../../"};
 #else
   const std::filesystem::path build{"../../"};
 #endif

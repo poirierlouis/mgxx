@@ -24,6 +24,8 @@
       }
     },
 
+    {"name": "wsl", "hidden": true, "cacheVariables":  {"WSL": "1"}},
+
     {"name": "tls-none", "hidden": true, "cacheVariables": {"MGXX_TLS": "none"}},
     {"name": "tls-builtin", "hidden": true, "cacheVariables": {"MGXX_TLS": "builtin"}},
     {"name": "tls-openssl", "hidden": true, "cacheVariables": {"MGXX_TLS": "openssl"}},
@@ -50,7 +52,12 @@
     {"name": "examples-linux", "displayName": "Examples", "inherits": ["base-linux", "tls-none", "examples"]},
     {"name": "examples-linux-tls", "displayName": "Examples w/ TLS builtin", "inherits": ["base-linux", "tls-builtin", "examples"]},
     {"name": "examples-linux-openssl", "displayName": "Examples w/ OpenSSL", "inherits": ["base-linux", "tls-openssl", "examples"]},
-    {"name": "examples-linux-mbedtls", "displayName": "Examples w/ Mbed-TLS", "inherits": ["base-linux", "tls-mbedtls", "examples"]}
+    {"name": "examples-linux-mbedtls", "displayName": "Examples w/ Mbed-TLS", "inherits": ["base-linux", "tls-mbedtls", "examples"]},
+
+    {"name": "examples-wsl", "displayName": "Examples", "inherits": ["base-linux", "wsl", "tls-none", "examples"]},
+    {"name": "examples-wsl-tls", "displayName": "Examples w/ TLS builtin", "inherits": ["base-linux", "wsl", "tls-builtin", "examples"]},
+    {"name": "examples-wsl-openssl", "displayName": "Examples w/ OpenSSL", "inherits": ["base-linux", "wsl", "tls-openssl", "examples"]},
+    {"name": "examples-wsl-mbedtls", "displayName": "Examples w/ Mbed-TLS", "inherits": ["base-linux", "wsl", "tls-mbedtls", "examples"]}
   ],
   "buildPresets": []
 }
