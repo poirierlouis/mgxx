@@ -27,7 +27,7 @@ class example {
 
 std::atomic_bool is_running{true};
 
-void signal_handler(int) {
+void handle_signal(int) {
   std::cout << "[mgxx::server] shutting down..." << '\n';
   is_running = false;
 }
@@ -53,7 +53,7 @@ std::optional<int> to_int(const std::string_view str) {
 }
 
 int main(int, char**) {
-  std::signal(SIGINT, &signal_handler);
+  std::signal(SIGINT, &handle_signal);
 
 #ifdef _WIN32
   const std::filesystem::path build{"../../../../"};
