@@ -128,9 +128,9 @@ void endpoint::handle_http_message(mg_connection* conn, mg_http_message* msg) {
     if (mg_match(msg->uri, str, groups.data())) {
       const request request(msg, *context, std::move(groups));
       if (listener->is_async()) {
-        const auto res = std::make_shared<async_response>(
-            get_conn_id(), conn->id, &m_responses, &m_streams, m_mgr);
-        listener->invoke(request, res);
+        async_response res(get_conn_id(), conn->id, &m_responses, &m_streams,
+                           m_mgr);
+        listener->invoke(request, std::move(res));
       } else {
         response res(conn);
         listener->invoke(request, res);
@@ -164,9 +164,9 @@ void endpoint::handle_http_message(mg_connection* conn, mg_http_message* msg) {
   if (m_fallback) {
     const request request(msg, *context);
     if (m_fallback->is_async()) {
-      const auto res = std::make_shared<async_response>(
-          get_conn_id(), conn->id, &m_responses, &m_streams, m_mgr);
-      m_fallback->invoke(request, res);
+      async_response res(get_conn_id(), conn->id, &m_responses, &m_streams,
+                         m_mgr);
+      m_fallback->invoke(request, std::move(res));
     } else {
       response res(conn);
       m_fallback->invoke(request, res);

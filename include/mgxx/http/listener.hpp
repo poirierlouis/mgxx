@@ -1,8 +1,6 @@
 #ifndef MGXX_HTTP_LISTENER_HPP
 #define MGXX_HTTP_LISTENER_HPP
 
-#include <memory>
-
 #include "mgxx/http/async_response.hpp"
 #include "mgxx/http/request.hpp"
 #include "mgxx/http/response.hpp"
@@ -21,8 +19,7 @@ class listener {
   [[nodiscard]] bool is_async() const { return m_is_async; }
 
   virtual void invoke(const request& req, response& res) {};
-  virtual void invoke(const request& req,
-                      const std::shared_ptr<async_response>& res) {};
+  virtual void invoke(const request& req, async_response&& res) {};
 };
 
 template <typename F, class R>
@@ -41,10 +38,9 @@ class lambda_http_listener : public listener {
     }
   }
 
-  void invoke(const request& req,
-              const std::shared_ptr<async_response>& res) override {
+  void invoke(const request& req, async_response&& res) override {
     if constexpr (std::is_same_v<R, async_response>) {
-      m_callback(req, res);
+      m_callback(req, std::move(res));
     }
   }
 };

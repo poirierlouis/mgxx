@@ -33,6 +33,12 @@ class async_response {
                           internal::queue_stream* stream,
                           std::weak_ptr<mg_mgr> mgr);
 
+  async_response(const async_response&) = delete;
+  async_response& operator=(const async_response&) = delete;
+
+  async_response(async_response&&) noexcept = default;
+  async_response& operator=(async_response&&) = delete;
+
   [[nodiscard]] headers& get_headers();
   [[nodiscard]] const headers& get_headers() const;
 
