@@ -48,6 +48,27 @@ async_request::async_request(const mg_http_message* msg,
 
 async_request::~async_request() { mg_free(m_msg.message.buf); }
 
+async_request::async_request(async_request&& rhs) noexcept {
+  *this = std::move(rhs);
+}
+
+async_request& async_request::operator=(async_request&& rhs) noexcept {
+  if (this == &rhs) {
+    return *this;
+  }
+
+  mg_free(m_msg.message.buf);
+  m_msg = rhs.m_msg;
+  rhs.m_msg.message.buf = nullptr;
+  rhs.m_msg.message.len = 0;
+
+  m_ip = std::move(rhs.m_ip);
+  m_groups = std::move(rhs.m_groups);
+  m_tls_cert_info = std::move(rhs.m_tls_cert_info);
+
+  return *this;
+}
+
 std::string_view async_request::get_remote_ip() const { return m_ip; }
 
 std::weak_ptr<tls_cert_info> async_request::get_tls_cert_info() const {

@@ -29,8 +29,8 @@ class async_request {
   async_request(const async_request&) = delete;
   async_request& operator=(const async_request&) = delete;
 
-  async_request(async_request&&) noexcept = delete;
-  async_request& operator=(async_request&&) = delete;
+  async_request(async_request&& rhs) noexcept;
+  async_request& operator=(async_request&& rhs) noexcept;
 
   [[nodiscard]] std::string_view get_remote_ip() const;
   [[nodiscard]] std::weak_ptr<tls_cert_info> get_tls_cert_info() const;

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <mgxx/mgxx.hpp>
+#include <mutex>
 #include <thread>
 
 using namespace mgxx::http;
@@ -26,7 +27,7 @@ class example {
 
 std::atomic_bool is_running{true};
 
-void signal_handler(int) {
+void handle_signal(int) {
   std::cout << "[mgxx::server] shutting down..." << '\n';
   is_running = false;
 }
@@ -52,7 +53,7 @@ std::optional<int> to_int(const std::string_view str) {
 }
 
 int main(int, char**) {
-  std::signal(SIGINT, &signal_handler);
+  std::signal(SIGINT, &handle_signal);
 
 #ifdef _WIN32
   const std::filesystem::path build{"../../../../"};
@@ -60,9 +61,11 @@ int main(int, char**) {
   const std::filesystem::path build{"../../"};
 #endif
   const std::filesystem::path examples{build / ".." / "examples"};
+  std::mutex mutex;
 
   mgxx::server server(
-      [](const std::string_view message) {
+      [&mutex](const std::string_view message) {
+        std::lock_guard lock(mutex);
         std::cout << "[mgxx::server] " << message;
       },
       MG_LL_DEBUG);
@@ -210,26 +213,27 @@ int main(int, char**) {
   std::atomic_uint64_t async_counter{1};
   http->on_async_request(
           "/async/cert",
-          [](const request& req, const std::shared_ptr<async_response>& res) {
-            std::thread thread([async_req = req.to_async(), res] {
+          [](const request& req, async_response&& res) {
+            std::thread thread([req = req.to_async(),
+                                res = std::move(res)]() mutable {
               std::this_thread::sleep_for(std::chrono::seconds(2));
 
-              if (const auto info = async_req->get_tls_cert_info().lock()) {
-                res->send(status_code::ok,
-                          std::format(
-                              "--- Client certificate ---\n"
-                              "Subject:{}\n"
-                              "Issuer:{}\n"
-                              "Serial Number:{}\n"
-                              "Not Before:{}\n"
-                              "Not After:{}\n"
-                              "Fingerprint:{}",
-                              info->get_subject_name(), info->get_issuer_name(),
-                              info->get_serial_number(), info->get_not_before(),
-                              info->get_not_after(), info->get_fingerprint()));
+              if (const auto info = req.get_tls_cert_info().lock()) {
+                res.send(status_code::ok,
+                         std::format(
+                             "--- Client certificate ---\n"
+                             "Subject:{}\n"
+                             "Issuer:{}\n"
+                             "Serial Number:{}\n"
+                             "Not Before:{}\n"
+                             "Not After:{}\n"
+                             "Fingerprint:{}",
+                             info->get_subject_name(), info->get_issuer_name(),
+                             info->get_serial_number(), info->get_not_before(),
+                             info->get_not_after(), info->get_fingerprint()));
               } else {
-                res->send(status_code::bad_request,
-                          "No client certificate provided");
+                res.send(status_code::bad_request,
+                         "No client certificate provided");
               }
             });
 
@@ -237,32 +241,34 @@ int main(int, char**) {
           })
       .on_async_request(
           "/async/who",
-          [](const request& req, const std::shared_ptr<async_response>& res) {
-            std::thread thread([async_req = req.to_async(), res] {
+          [](const request& req, async_response&& res) {
+            std::thread thread([req = req.to_async(),
+                                res = std::move(res)]() mutable {
               std::this_thread::sleep_for(std::chrono::seconds(2));
 
-              res->send(status_code::ok,
-                        std::format("You are {}!", async_req->get_remote_ip()));
+              res.send(status_code::ok,
+                       std::format("You are {}!\nYou accept: {}",
+                                   req.get_remote_ip(),
+                                   req.get_header("Accept").value_or("N/A")));
             });
 
             thread.detach();
           })
       .on_async_request(
           "/async/file",
-          [examples](const request&,
-                     const std::shared_ptr<async_response>& res) {
-            std::thread thread([examples, res] {
+          [examples](const request&, async_response&& res) {
+            std::thread thread([examples, res = std::move(res)]() mutable {
               std::ifstream file(examples / "tls.cmd");
               if (!file.is_open()) {
-                res->send(status_code::internal_server_error,
-                          "Failed to open file");
+                res.send(status_code::internal_server_error,
+                         "Failed to open file");
                 return;
               }
 
-              res->get_headers().set("Content-Type", "text/plain");
+              res.get_headers().set("Content-Type", "text/plain");
 
               const auto stream =
-                  res->stream(status_code::ok /*, "gzip, chunked" */);
+                  res.stream(status_code::ok /*, "gzip, chunked" */);
               while (stream->wait()) {
                 if (file.eof()) {
                   stream->close();
@@ -273,37 +279,33 @@ int main(int, char**) {
                 file.read(chunk.data(),
                           static_cast<std::streamsize>(chunk.size()));
                 chunk.resize(file.gcount());
-                stream->send(std::move(chunk));
-
-                // simulate busy work
-                std::this_thread::sleep_for(std::chrono::milliseconds(16));
+                if (!stream->send(std::move(chunk))) {
+                  std::cerr << "[mgxx::server] Failed to stream a chunk.\n";
+                  break;
+                }
               }
 
-              if (stream->failed()) {
-                std::cerr << "[mgxx::server] Failed to send file.\n";
-              }
+              std::cout << "[mgxx::server] Finished streaming file.\n";
             });
 
             thread.detach();
           })
-      .on_async_request(
-          "/async/?",
-          [&async_counter](const request& req,
-                           const std::shared_ptr<async_response>& res) {
-            std::thread thread(
-                [&async_counter, async_req = req.to_async(), res] {
-                  const auto param = async_req->get_param(0).value_or("5");
-                  const int sleep = to_int(param).value_or(5);
-                  std::this_thread::sleep_for(std::chrono::seconds(sleep));
+      .on_async_request("/async/?", [&async_counter](const request& req,
+                                                     async_response&& res) {
+        std::thread thread([&async_counter, req = req.to_async(),
+                            res = std::move(res)]() mutable {
+          const auto param = req.get_param(0).value_or("5");
+          const int sleep = to_int(param).value_or(5);
+          std::this_thread::sleep_for(std::chrono::seconds(sleep));
 
-                  auto count = async_counter.fetch_add(1);
-                  res->send(status_code::ok,
-                            std::format("I'm an async {} callback ({} calls).",
-                                        async_req->method(), count));
-                });
+          auto count = async_counter.fetch_add(1);
+          res.send(status_code::ok,
+                   std::format("I'm an async {} callback ({} calls).",
+                               req.method(), count));
+        });
 
-            thread.detach();
-          });
+        thread.detach();
+      });
 
   http->on_asset("/",
                  std::filesystem::absolute(examples / "simple.html").string())
