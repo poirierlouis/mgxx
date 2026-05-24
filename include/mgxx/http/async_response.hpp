@@ -43,10 +43,10 @@ class async_response {
   [[nodiscard]] const headers& get_headers() const;
 
   void send(status_code code);
-  void send(status_code code, const std::string& body);
+  void send(status_code code, std::string body);
 
   void send(int code);
-  void send(int code, const std::string& body);
+  void send(int code, std::string body);
 
   [[nodiscard]] std::shared_ptr<async_stream> stream(
       status_code code, std::string encoding = "chunked");

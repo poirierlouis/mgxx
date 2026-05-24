@@ -22,13 +22,13 @@ void async_response::send(const status_code code) {
   send(static_cast<int>(code));
 }
 
-void async_response::send(const status_code code, const std::string& body) {
-  send(static_cast<int>(code), body);
+void async_response::send(const status_code code, std::string body) {
+  send(static_cast<int>(code), std::move(body));
 }
 
 void async_response::send(const int code) { send(code, ""); }
 
-void async_response::send(const int code, const std::string& body) {
+void async_response::send(const int code, std::string body) {
   const auto mgr = m_mgr.lock();
   if (!mgr) {
     MG_ERROR(("errmsg=\"Failed to send response on %u, endpoint is lost.\"",
@@ -40,7 +40,7 @@ void async_response::send(const int code, const std::string& body) {
   data.conn = m_conn;
   data.code = code;
   data.headers = m_headers.format();
-  data.body = body;
+  data.body = std::move(body);
 
   if (!m_queue_response->push(std::move(data))) {
     MG_ERROR(
