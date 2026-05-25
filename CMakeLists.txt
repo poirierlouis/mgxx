@@ -56,6 +56,7 @@ add_library(${PROJECT_NAME} STATIC
 
         src/endpoint.cpp
         src/server.cpp
+        src/tls.cpp
 
         vendors/mongoose/mongoose.c
 )

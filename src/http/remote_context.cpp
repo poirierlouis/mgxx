@@ -9,7 +9,7 @@ remote_context::remote_context(mgxx::endpoint* endpoint,
 
 std::string_view remote_context::get_remote_ip() const { return m_ip; }
 
-std::weak_ptr<tls_cert_info> remote_context::get_tls_cert_info() const {
+const tls_cert_info& remote_context::get_tls_cert_info() const {
   return m_tls_cert;
 }
 
@@ -82,31 +82,35 @@ void remote_context::setup(const mg_connection* conn) {
 
   BIO_free(bio);
 
-  m_tls_cert = std::make_shared<tls_cert_info>();
-  m_tls_cert->buffer.clear();
-  m_tls_cert->buffer.reserve(subject.size() + issuer.size() + serial.size() +
-                             before.size() + after.size() + fingerprint.size());
+  m_tls_cert.buffer.clear();
+  m_tls_cert.buffer.reserve(subject.size() + issuer.size() + serial.size() +
+                            before.size() + after.size() + fingerprint.size());
 
-  m_tls_cert->buffer.append(subject);
-  m_tls_cert->buffer.append(issuer);
-  m_tls_cert->buffer.append(serial);
-  m_tls_cert->buffer.append(before);
-  m_tls_cert->buffer.append(after);
-  m_tls_cert->buffer.append(fingerprint);
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), subject.begin(),
+                           subject.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), issuer.begin(),
+                           issuer.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), serial.begin(),
+                           serial.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), before.begin(),
+                           before.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), after.begin(), after.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), fingerprint.begin(),
+                           fingerprint.end());
 
-  const char* base = m_tls_cert->buffer.data();
-  m_tls_cert->subject_name = {base, subject.size()};
-  m_tls_cert->issuer_name = {base + subject.size(), issuer.size()};
-  m_tls_cert->serial_number = {base + subject.size() + issuer.size(),
-                               serial.size()};
-  m_tls_cert->not_before = {
+  const char* base = m_tls_cert.buffer.data();
+  m_tls_cert.subject_name = {base, subject.size()};
+  m_tls_cert.issuer_name = {base + subject.size(), issuer.size()};
+  m_tls_cert.serial_number = {base + subject.size() + issuer.size(),
+                              serial.size()};
+  m_tls_cert.not_before = {
       base + subject.size() + issuer.size() + serial.size(), before.size()};
-  m_tls_cert->not_after = {
+  m_tls_cert.not_after = {
       base + subject.size() + issuer.size() + serial.size() + before.size(),
       after.size()};
-  m_tls_cert->fingerprint = {base + subject.size() + issuer.size() +
-                                 serial.size() + before.size() + after.size(),
-                             fingerprint.size()};
+  m_tls_cert.fingerprint = {base + subject.size() + issuer.size() +
+                                serial.size() + before.size() + after.size(),
+                            fingerprint.size()};
 #endif
 #ifdef MGPP_MBED
   const auto* tls = static_cast<mg_tls*>(conn->tls);
@@ -178,31 +182,35 @@ void remote_context::setup(const mg_connection* conn) {
   const std::string after = std::format("{}", get_timestamp(cert->valid_to));
   const std::string fingerprint = get_fingerprint().value_or("");
 
-  m_tls_cert = std::make_shared<tls_cert_info>();
-  m_tls_cert->buffer.clear();
-  m_tls_cert->buffer.reserve(subject.size() + issuer.size() + serial.size() +
-                             before.size() + after.size() + fingerprint.size());
+  m_tls_cert.buffer.clear();
+  m_tls_cert.buffer.reserve(subject.size() + issuer.size() + serial.size() +
+                            before.size() + after.size() + fingerprint.size());
 
-  m_tls_cert->buffer.append(subject);
-  m_tls_cert->buffer.append(issuer);
-  m_tls_cert->buffer.append(serial);
-  m_tls_cert->buffer.append(before);
-  m_tls_cert->buffer.append(after);
-  m_tls_cert->buffer.append(fingerprint);
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), subject.begin(),
+                           subject.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), issuer.begin(),
+                           issuer.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), serial.begin(),
+                           serial.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), before.begin(),
+                           before.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), after.begin(), after.end());
+  m_tls_cert.buffer.insert(m_tls_cert.buffer.end(), fingerprint.begin(),
+                           fingerprint.end());
 
-  const char* base = m_tls_cert->buffer.data();
-  m_tls_cert->subject_name = {base, subject.size()};
-  m_tls_cert->issuer_name = {base + subject.size(), issuer.size()};
-  m_tls_cert->serial_number = {base + subject.size() + issuer.size(),
-                               serial.size()};
-  m_tls_cert->not_before = {
+  const char* base = m_tls_cert.buffer.data();
+  m_tls_cert.subject_name = {base, subject.size()};
+  m_tls_cert.issuer_name = {base + subject.size(), issuer.size()};
+  m_tls_cert.serial_number = {base + subject.size() + issuer.size(),
+                              serial.size()};
+  m_tls_cert.not_before = {
       base + subject.size() + issuer.size() + serial.size(), before.size()};
-  m_tls_cert->not_after = {
+  m_tls_cert.not_after = {
       base + subject.size() + issuer.size() + serial.size() + before.size(),
       after.size()};
-  m_tls_cert->fingerprint = {base + subject.size() + issuer.size() +
-                                 serial.size() + before.size() + after.size(),
-                             fingerprint.size()};
+  m_tls_cert.fingerprint = {base + subject.size() + issuer.size() +
+                                serial.size() + before.size() + after.size(),
+                            fingerprint.size()};
 
 #endif
 }

@@ -1,17 +1,19 @@
 #ifndef MGXX_TLS_HPP
 #define MGXX_TLS_HPP
 
-#include <string>
 #include <string_view>
+#include <vector>
 
 namespace mgxx {
 
 namespace http {
 class remote_context;
-}
+class request;
+class async_request;
+}  // namespace http
 
 class tls_cert_info {
-  std::string buffer;
+  std::vector<char> buffer;
 
   std::string_view subject_name;
   std::string_view issuer_name;
@@ -22,28 +24,28 @@ class tls_cert_info {
 
   std::string_view fingerprint;
 
+  [[nodiscard]] bool is_present() const;
+
   friend class mgxx::http::remote_context;
+  friend class mgxx::http::request;
+  friend class mgxx::http::async_request;
 
  public:
   tls_cert_info() = default;
   ~tls_cert_info() = default;
 
-  tls_cert_info(const tls_cert_info&) = delete;
-  tls_cert_info& operator=(const tls_cert_info&) = delete;
+  tls_cert_info(const tls_cert_info& rhs);
+  tls_cert_info& operator=(const tls_cert_info& rhs);
 
-  tls_cert_info(tls_cert_info&&) = delete;
-  tls_cert_info& operator=(tls_cert_info&&) = delete;
+  tls_cert_info(tls_cert_info&&) noexcept = default;
+  tls_cert_info& operator=(tls_cert_info&&) noexcept = default;
 
-  [[nodiscard]] std::string_view get_subject_name() const {
-    return subject_name;
-  }
-  [[nodiscard]] std::string_view get_issuer_name() const { return issuer_name; }
-  [[nodiscard]] std::string_view get_serial_number() const {
-    return serial_number;
-  }
-  [[nodiscard]] std::string_view get_not_before() const { return not_before; }
-  [[nodiscard]] std::string_view get_not_after() const { return not_after; }
-  [[nodiscard]] std::string_view get_fingerprint() const { return fingerprint; }
+  [[nodiscard]] std::string_view get_subject_name() const;
+  [[nodiscard]] std::string_view get_issuer_name() const;
+  [[nodiscard]] std::string_view get_serial_number() const;
+  [[nodiscard]] std::string_view get_not_before() const;
+  [[nodiscard]] std::string_view get_not_after() const;
+  [[nodiscard]] std::string_view get_fingerprint() const;
 };
 }  // namespace mgxx
 

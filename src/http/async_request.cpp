@@ -9,7 +9,7 @@ async_request::async_request(const mg_http_message* msg)
 async_request::async_request(const mg_http_message* msg,
                              std::vector<mg_str> groups,
                              const std::string_view ip,
-                             std::weak_ptr<tls_cert_info> tls_cert_info)
+                             tls_cert_info tls_cert_info)
     : m_groups(std::move(groups)),
       m_ip(ip),
       m_tls_cert_info(std::move(tls_cert_info)) {
@@ -71,7 +71,9 @@ async_request& async_request::operator=(async_request&& rhs) noexcept {
 
 std::string_view async_request::get_remote_ip() const { return m_ip; }
 
-std::weak_ptr<tls_cert_info> async_request::get_tls_cert_info() const {
+bool async_request::is_mtls() const { return m_tls_cert_info.is_present(); }
+
+const tls_cert_info& async_request::get_tls_cert_info() const {
   return m_tls_cert_info;
 }
 

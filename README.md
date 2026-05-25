@@ -243,6 +243,9 @@ Not After: 1809200143
 Fingerprint: 76:3F:5A:29:8B:C6:1A:76:A3:E2:DA:1F:0D:75:6F:40:91:A3:71:EA:74:1F:9D:A7:9E:DF:FC:6C:3F:98:25:C5
 ```
 
+It is provided in `request` and `async_request` using `get_tls_cert_info()`. You
+can check if it is a mTLS connection using `is_mtls()`.
+
 ## Examples
 
 See [`examples/`](examples/simple/src/main.cpp) for a complete runnable example
