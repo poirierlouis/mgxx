@@ -187,27 +187,30 @@ int main(int, char**) {
                 std::format("I'm capturing one group for API endpoints: {}",
                             param));
           })
-      .on_request(
-          "/cert",
-          [](const request& req, response& res) {
-            if (const auto info = req.get_tls_cert_info().lock()) {
-              res.send(
-                  status_code::ok,
-                  std::format("--- Client certificate ---\n"
-                              "Subject:{}\n"
-                              "Issuer:{}\n"
-                              "Serial Number:{}\n"
-                              "Not Before:{}\n"
-                              "Not After:{}\n"
-                              "Fingerprint:{}",
-                              info->get_subject_name(), info->get_issuer_name(),
-                              info->get_serial_number(), info->get_not_before(),
-                              info->get_not_after(), info->get_fingerprint()));
-            } else {
-              res.send(status_code::bad_request,
-                       "No client certificate provided");
-            }
-          })
+      .on_request("/cert",
+                  [](const request& req, response& res) {
+                    if (!req.is_mtls()) {
+                      res.send(status_code::bad_request,
+                               "No client certificate provided");
+                      return;
+                    }
+
+                    const auto& tls_cert = req.get_tls_cert_info();
+                    res.send(status_code::ok,
+                             std::format("--- Client certificate ---\n"
+                                         "Subject:{}\n"
+                                         "Issuer:{}\n"
+                                         "Serial Number:{}\n"
+                                         "Not Before:{}\n"
+                                         "Not After:{}\n"
+                                         "Fingerprint:{}",
+                                         tls_cert.get_subject_name(),
+                                         tls_cert.get_issuer_name(),
+                                         tls_cert.get_serial_number(),
+                                         tls_cert.get_not_before(),
+                                         tls_cert.get_not_after(),
+                                         tls_cert.get_fingerprint()));
+                  })
       .on_fallback([](const request&, response& res) {
         res.send(status_code::not_found, "404 Not Found");
       });
@@ -220,23 +223,26 @@ int main(int, char**) {
                                 res = std::move(res)]() mutable {
               std::this_thread::sleep_for(std::chrono::seconds(2));
 
-              if (const auto info = req.get_tls_cert_info().lock()) {
-                res.send(status_code::ok,
-                         std::format(
-                             "--- Client certificate ---\n"
-                             "Subject:{}\n"
-                             "Issuer:{}\n"
-                             "Serial Number:{}\n"
-                             "Not Before:{}\n"
-                             "Not After:{}\n"
-                             "Fingerprint:{}",
-                             info->get_subject_name(), info->get_issuer_name(),
-                             info->get_serial_number(), info->get_not_before(),
-                             info->get_not_after(), info->get_fingerprint()));
-              } else {
+              if (!req.is_mtls()) {
                 res.send(status_code::bad_request,
                          "No client certificate provided");
+                return;
               }
+
+              const auto& tls_cert = req.get_tls_cert_info();
+              res.send(
+                  status_code::ok,
+                  std::format(
+                      "--- Client certificate ---\n"
+                      "Subject:{}\n"
+                      "Issuer:{}\n"
+                      "Serial Number:{}\n"
+                      "Not Before:{}\n"
+                      "Not After:{}\n"
+                      "Fingerprint:{}",
+                      tls_cert.get_subject_name(), tls_cert.get_issuer_name(),
+                      tls_cert.get_serial_number(), tls_cert.get_not_before(),
+                      tls_cert.get_not_after(), tls_cert.get_fingerprint()));
             });
 
             thread.detach();

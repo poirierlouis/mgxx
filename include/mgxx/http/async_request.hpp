@@ -17,13 +17,12 @@ class async_request {
   mg_http_message m_msg{};
   std::vector<mg_str> m_groups;
   std::string m_ip;
-  std::weak_ptr<tls_cert_info> m_tls_cert_info;
+  tls_cert_info m_tls_cert_info;
 
  public:
   explicit async_request(const mg_http_message* msg);
   explicit async_request(const mg_http_message* msg, std::vector<mg_str> groups,
-                         std::string_view ip,
-                         std::weak_ptr<tls_cert_info> tls_cert_info);
+                         std::string_view ip, tls_cert_info tls_cert_info);
   ~async_request();
 
   async_request(const async_request&) = delete;
@@ -33,7 +32,8 @@ class async_request {
   async_request& operator=(async_request&& rhs) noexcept;
 
   [[nodiscard]] std::string_view get_remote_ip() const;
-  [[nodiscard]] std::weak_ptr<tls_cert_info> get_tls_cert_info() const;
+  [[nodiscard]] bool is_mtls() const;
+  [[nodiscard]] const tls_cert_info& get_tls_cert_info() const;
 
   [[nodiscard]] std::string_view method() const;
   [[nodiscard]] std::string_view uri() const;

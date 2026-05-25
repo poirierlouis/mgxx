@@ -17,7 +17,7 @@ class request {
   mg_http_message* m_msg;
   std::vector<mg_str> m_groups;
   std::string_view m_ip;
-  std::weak_ptr<tls_cert_info> m_tls_cert_info;
+  const tls_cert_info& m_tls_cert_info;
 
  public:
   explicit request(mg_http_message* msg, const remote_context& context);
@@ -28,10 +28,11 @@ class request {
   request& operator=(const request&) = delete;
 
   request(request&&) noexcept = default;
-  request& operator=(request&&) = default;
+  request& operator=(request&&) = delete;
 
   [[nodiscard]] std::string_view get_remote_ip() const;
-  [[nodiscard]] std::weak_ptr<tls_cert_info> get_tls_cert_info() const;
+  [[nodiscard]] bool is_mtls() const;
+  [[nodiscard]] const tls_cert_info& get_tls_cert_info() const;
 
   [[nodiscard]] std::string_view method() const;
   [[nodiscard]] std::string_view uri() const;

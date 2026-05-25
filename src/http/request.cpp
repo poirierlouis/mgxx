@@ -13,7 +13,9 @@ request::request(mg_http_message* msg, const remote_context& context,
 
 std::string_view request::get_remote_ip() const { return m_ip; }
 
-std::weak_ptr<tls_cert_info> request::get_tls_cert_info() const {
+bool request::is_mtls() const { return m_tls_cert_info.is_present(); }
+
+const tls_cert_info& request::get_tls_cert_info() const {
   return m_tls_cert_info;
 }
 
