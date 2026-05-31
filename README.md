@@ -10,6 +10,9 @@ hiding the C-level details of Mongoose behind thin, zero-overhead abstractions â
 while preserving full compatibility with embedded and resource-constrained
 targets.
 
+This project is used as a base for
+[mungo](https://github.com/poirierlouis/mungo), a C++20 HTTP framework.
+
 ## Features
 
 - Register HTTP handlers using lambdas (no `std::function`)
@@ -46,12 +49,22 @@ you must get a commercial license for Mongoose directly from
 
 CMake presets are provided for building the static library with/without the 
 example project. It provides options with no TLS, builtin TLS, OpenSSL, and 
-mbedTLS support. It only includes support for Windows at the moment.
+mbedTLS support. It supports Windows, WSL, and Linux platforms.
 
 ```bash
 git clone --recurse-submodules https://github.com/poirierlouis/mgxx.git
 cd mgxx
+
+# Windows
 cmake -B build --preset example-win-openssl
+cmake --build build --config Release
+
+# WSL
+cmake -B build --preset example-wsl-openssl
+cmake --build build --config Release
+
+# Linux
+cmake -B build --preset example-linux-openssl
 cmake --build build --config Release
 ```
 
