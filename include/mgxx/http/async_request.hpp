@@ -3,7 +3,6 @@
 
 #include <mongoose.h>
 
-#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -39,6 +38,8 @@ class async_request {
   [[nodiscard]] std::string_view uri() const;
   [[nodiscard]] std::optional<std::string_view> get_param(size_t index) const;
   [[nodiscard]] std::string_view query() const;
+  [[nodiscard]] std::optional<std::string_view> get_query_param(
+      std::string_view name) const;
   [[nodiscard]] std::string_view version() const;
   [[nodiscard]] std::optional<std::string_view> get_header(
       const std::string& name) const;

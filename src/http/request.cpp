@@ -38,6 +38,17 @@ std::string_view request::query() const {
   return {m_msg->query.buf, m_msg->query.len};
 }
 
+std::optional<std::string_view> request::get_query_param(
+    const std::string_view name) const {
+  const auto var =
+      mg_http_var(m_msg->query, mg_str_n(name.data(), name.size()));
+  if (var.buf == nullptr) {
+    return std::nullopt;
+  }
+
+  return std::string_view{var.buf, var.len};
+}
+
 std::string_view request::version() const {
   return {m_msg->proto.buf, m_msg->proto.len};
 }

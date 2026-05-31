@@ -1,4 +1,4 @@
-#include "mgxx/http/internal/common.hpp"
+#include "mgxx/http/common.hpp"
 
 #include <format>
 

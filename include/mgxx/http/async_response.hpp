@@ -7,8 +7,8 @@
 #include <string>
 
 #include "mgxx/http/async_stream.hpp"
+#include "mgxx/http/common.hpp"
 #include "mgxx/http/headers.hpp"
-#include "mgxx/http/internal/common.hpp"
 #include "mgxx/http/internal/payload.hpp"
 
 namespace mgxx::http {

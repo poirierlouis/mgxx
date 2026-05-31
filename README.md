@@ -107,9 +107,13 @@ int main() {
   });
 
   // Parameterized route with capture groups
+  // Access URL-encoded query parameters
   http->on_request("/user/*", [](const request& req, response& res) {
     const auto name = req.get_param(0).value_or("unknown");
-    res->send(status_code::ok, std::format("Hello, {}!", name));
+    const auto query = mgxx::http::decode_url(req.get_query_param("q").value_or(""));
+
+    res->send(status_code::ok,
+              std::format("Hello, {}!\nYou are searching for {}...", name));
   });
 
   while (true) {

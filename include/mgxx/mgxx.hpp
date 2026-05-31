@@ -8,6 +8,7 @@
 #include "mgxx/http/async_request.hpp"
 #include "mgxx/http/async_response.hpp"
 #include "mgxx/http/async_stream.hpp"
+#include "mgxx/http/common.hpp"
 #include "mgxx/http/endpoint.hpp"
 #include "mgxx/http/headers.hpp"
 #include "mgxx/http/request.hpp"
