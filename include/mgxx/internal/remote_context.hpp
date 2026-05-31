@@ -8,7 +8,7 @@
 #include <string>
 
 #include "mgxx/endpoint.hpp"
-#include "mgxx/http/internal/common.hpp"
+#include "mgxx/http/common.hpp"
 #include "mgxx/tls.hpp"
 
 namespace mgxx::http {

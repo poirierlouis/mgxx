@@ -117,10 +117,17 @@ int main(int, char**) {
       .on_request("/class", [&ex](const request& req,
                                   response& res) { ex.simple(req, res); })
       .on_request("/lambda",
-                  [&counter](const request&, response& res) {
+                  [&counter](const request& req, response& res) {
+                    const auto page = req.get_query_param("page");
+                    const auto limit = req.get_query_param("limit");
+
                     res.send(status_code::ok,
-                             std::format("I'm a lambda callback ({} calls).",
-                                         ++counter));
+                             std::format("I'm a lambda callback:\n"
+                                         "- {} calls\n"
+                                         "- page: {}\n"
+                                         "- limit: {}",
+                                         ++counter, page.value_or("N/A"),
+                                         limit.value_or("N/A")));
                   })
       .on_request("/who",
                   [](const request& req, response& res) {
@@ -253,11 +260,17 @@ int main(int, char**) {
             std::thread thread([req = req.to_async(),
                                 res = std::move(res)]() mutable {
               std::this_thread::sleep_for(std::chrono::seconds(2));
+              const auto q = req.get_query_param("q").value_or("N/A");
+              const auto query =
+                  mgxx::http::decode_url(q).value_or("Decoding error");
 
-              res.send(status_code::ok,
-                       std::format("You are {}!\nYou accept: {}",
-                                   req.get_remote_ip(),
-                                   req.get_header("Accept").value_or("N/A")));
+              res.send(
+                  status_code::ok,
+                  std::format("You are {}!\n"
+                              "You accept: {}\n"
+                              "You queried: {}",
+                              req.get_remote_ip(),
+                              req.get_header("Accept").value_or("N/A"), query));
             });
 
             thread.detach();

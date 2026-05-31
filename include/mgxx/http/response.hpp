@@ -6,8 +6,8 @@
 #include <memory>
 #include <string>
 
+#include "mgxx/http/common.hpp"
 #include "mgxx/http/headers.hpp"
-#include "mgxx/http/internal/common.hpp"
 #include "mgxx/internal/remote_context.hpp"
 
 namespace mgxx::http {
