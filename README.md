@@ -265,8 +265,8 @@ can check if it is a mTLS connection using `is_mtls()`.
 
 ### Utilities
 
-This section covers some utility functions that are used internally by the
-framework. They are part of the public API for convenience.
+This section covers some utility functions provided by mongoose that don't fall
+under the APIs above.
 
 #### CSPRNG
 You can generate cryptographically secure random numbers:
