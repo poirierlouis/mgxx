@@ -263,6 +263,26 @@ Fingerprint: 76:3F:5A:29:8B:C6:1A:76:A3:E2:DA:1F:0D:75:6F:40:91:A3:71:EA:74:1F:9
 It is provided in `request` and `async_request` using `get_tls_cert_info()`. You
 can check if it is a mTLS connection using `is_mtls()`.
 
+### Utilities
+
+This section covers some utility functions that are used internally by the
+framework. They are part of the public API for convenience.
+
+#### CSPRNG
+You can generate cryptographically secure random numbers:
+```cpp
+std::array<std::byte, 32> bytes = mgxx::secure::random::generate_bytes<32>();
+std::optional<std::string> hex = mgxx::secure::random::generate_hex<16>();
+
+// bytes is 256 bits of random data.
+// hex is 128 bits of random data in hexadecimal format.
+```
+
+Internally, it uses [mg_random](https://mongoose.ws/docs/api/util/#mg_random)
+provided by mongoose. It is cryptographically secure on Windows and Unix
+platforms. If it fails (because a suitable CSPRNG is not available), the result
+is empty.
+
 ## Examples
 
 See [`examples/`](examples/simple/src/main.cpp) for a complete runnable example

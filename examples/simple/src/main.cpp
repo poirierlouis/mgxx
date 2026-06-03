@@ -140,6 +140,14 @@ int main(int, char**) {
             auto& headers = res.get_headers();
             headers.set("Authorization", "Bearer [token]");
 
+            if (const auto nonce = mgxx::secure::random::generate_hex<16>()) {
+              headers.set("X-Nonce", std::format("{}", *nonce));
+              headers.set(
+                  "X-Lucky",
+                  // this comparison is not safe for production use!
+                  *nonce == "a3f8c72b1e4d9a6c8b5f3e2d1a0c9b8e" ? "yes" : "no");
+            }
+
             std::string body;
 
             const auto auth = headers.get_view("authorization");

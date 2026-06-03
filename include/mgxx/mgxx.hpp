@@ -3,6 +3,7 @@
 
 // clang-format off
 #include "mgxx/endpoint.hpp"
+#include "mgxx/secure.hpp"
 #include "mgxx/server.hpp"
 
 #include "mgxx/http/async_request.hpp"

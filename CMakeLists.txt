@@ -55,6 +55,7 @@ add_library(${PROJECT_NAME} STATIC
         src/internal/queue.cpp
 
         src/endpoint.cpp
+        src/secure.cpp
         src/server.cpp
         src/tls.cpp
 
