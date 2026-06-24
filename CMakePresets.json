@@ -2,9 +2,21 @@
   "version": 4,
   "configurePresets": [
     {
-      "name": "base-win",
+      "name": "base-win-2022",
       "hidden": true,
       "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+
+    {
+      "name": "base-win",
+      "hidden": true,
+      "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "condition": {
         "type": "equals",
