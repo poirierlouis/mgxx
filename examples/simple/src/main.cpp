@@ -269,8 +269,7 @@ int main(int, char**) {
                                 res = std::move(res)]() mutable {
               std::this_thread::sleep_for(std::chrono::seconds(2));
               const auto q = req.get_query_param("q").value_or("N/A");
-              const auto query =
-                  mgxx::http::decode_url(q).value_or("Decoding error");
+              const auto query = decode_url(q).value_or(std::string(q));
 
               res.send(
                   status_code::ok,

@@ -123,7 +123,8 @@ int main() {
   // Access URL-encoded query parameters
   http->on_request("/user/*", [](const request& req, response& res) {
     const auto name = req.get_param(0).value_or("unknown");
-    const auto query = mgxx::http::decode_url(req.get_query_param("q").value_or(""));
+    const auto q = req.get_query_param("q").value_or("");
+    const auto query = mgxx::http::decode_url(q).value_or(std::string(q));
 
     res->send(status_code::ok,
               std::format("Hello, {}!\nYou are searching for {}...", name));

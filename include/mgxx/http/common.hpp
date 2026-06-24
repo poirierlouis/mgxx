@@ -18,19 +18,19 @@ using stream_producer = supplier<std::optional<std::string>>;
 template <typename F>
 using lambda_stream_producer = lambda_supplier<std::optional<std::string>, F>;
 
-template <size_t N = 1024>
-std::optional<std::string> decode_url(const std::string_view url) {
-  char buffer[N];
-  std::fill_n(buffer, N, '\0');
-  if (mg_url_decode(url.data(), url.size(), buffer, N, 0) < 0) {
+inline std::optional<std::string> decode_url(const std::string_view url) {
+  std::string decoded{url};
+  const int size = mg_url_decode(decoded.data(), decoded.size(), decoded.data(), decoded.size(), 0);
+  if (size < 0) {
     return std::nullopt;
   }
 
-  return std::string{buffer};
+  decoded.resize(size);
+  return decoded;
 }
 
 // NOTE: copied from mongoose.c
-static const char* format_status_code(const int code) {
+inline const char* format_status_code(const int code) {
   // clang-format off
   switch (code) {
     case 100: return "Continue";
